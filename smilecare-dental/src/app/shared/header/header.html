@@ -1,0 +1,46 @@
+    <!-- Top navigation / header -->
+    <header class="header">
+        <div class="container header-top header__left">
+
+            <!-- Burger menu button (visible on mobile) -->
+            <div class="burger-menu">
+                <button class="nav-toggle header__burger" type="button" (click)="toggleMenu()" aria-label="Abrir menu" [attr.aria-expanded]="isOpen() ? 'true' : 'false'"> ☰ </button>
+            </div>
+
+            <!-- Brand / logo -->
+            <div class="logo">
+                <a routerLink="/" class="header__logo" (click)="closeMenu()">
+                    <img src="assets/logo_dental.png" alt="SmileCare Dental logo">
+                    <h1>SmileCare Dental</h1>
+                </a>
+            </div>
+
+            <!-- Header action icons (settings and user/profile) -->
+            <div class="header-icons">
+                <a class="icon icon-settings" routerLink="#">
+                    <span class="material-symbols-outlined">settings</span>
+                </a>
+                <a class="icon" routerLink="#">
+                    <div>
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main navigation wrapper -->
+        <nav class="header-nav" aria-label="Main" [class.is-open]="isOpen()">
+            <div class="container nav-inner">
+
+                <!-- Main navigation list -->
+                <nav class="main-nav" id="site-nav" aria-label="Main">
+                    <ul class="nav-links">
+                        <li><a href="#" class="nav-link" (click)="closeMenu()">Pacientes</a></li>
+                        <li><a href="#crear-cita" class="nav-link" (click)="closeMenu()">Nueva cita</a></li>
+                        <li><a href="#mostrar-citas" class="nav-link" (click)="closeMenu()">Mostrar citas</a></li>
+                    </ul>
+                </nav>
+
+            </div>
+        </nav>
+    </header>
