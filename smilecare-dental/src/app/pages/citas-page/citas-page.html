@@ -1,0 +1,221 @@
+<!-- Main page content -->
+<main class="container">
+
+    <!-- Appointment creation section -->
+    <section id="crear-cita">
+        <div class="header-create">
+            <div>
+                <span class="material-symbols-outlined">add_circle</span>
+                <h2>Nueva cita</h2>
+            </div>
+            <span class="subheader-create">Introduce los datos del paciente a continuación:</span>
+        </div>
+
+        <div class="body-create">
+            <!-- Main form used to create an appointment -->
+            <form [formGroup]="citaForm" (ngSubmit)="onSubmit()">
+
+                <label>
+                    <span>Fecha</span>
+                    <input type="date" formControlName="date" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Hora</span>
+                    <input type="time" formControlName="time" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Nombre</span>
+                    <input type="text" formControlName="firstName" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Apellidos</span>
+                    <input type="text" formControlName="lastName" />
+                    <small class="error-msg" aria-live="polite"></small>
+
+                </label>
+
+                <label>
+                    <span>DNI o NIE</span>
+                    <input type="text" formControlName="dni" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Teléfono</span>
+                    <input type="tel" formControlName="phone" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Email</span>
+                    <input type="email" formControlName="email" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Fecha de Nacimiento</span>
+                    <input type="date" formControlName="birthDate" />
+                    <small class="error-msg" aria-live="polite"></small>
+                </label>
+
+                <label>
+                    <span>Observaciones</span>
+                    <textarea id="notes" name="notes" rows="2" placeholder="Indica alguna observación..."
+                        formControlName="notes"></textarea>
+                </label>
+
+                <!-- Hidden field used to keep track of the appointment being edited -->
+                <input type="hidden" id="editingId" />
+
+                <!-- Form actions -->
+                <div class="button-create">
+                    <button type="reset">Limpiar</button>
+                    <button type="submit" class="button-save-blue">
+                        <span class="material-symbols-outlined">calendar_add_on</span>
+                        Guardar cita
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </section>
+
+    <!-- Appointments table section -->
+    <section id="mostrar-citas" class="table">
+
+        <div class="header-show">
+            <div class="header-show-top">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <h2>{{ tableTitle() }}</h2>
+
+                @if (filterMode() === 'today') {
+                <span class="date">
+                    {{ todayLabel() }}
+                </span>
+                }
+            </div>
+
+            <div class="header-show-bottom">
+                <div class="header-show-search">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="text" placeholder="Buscar..." (input)="searchTerm.set(($any($event.target)).value)" />
+                </div>
+                <div class="header-show-actions">
+                    <button type="button" [class.is-active]="filterMode() === 'all'" (click)="filterMode.set('all')">
+                        Todas
+                    </button>
+
+                    <button type="button" [class.is-active]="filterMode() === 'today'"
+                        (click)="filterMode.set('today')">
+                        Hoy
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table container -->
+        <div class="body-show">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Paciente</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (filteredCitas().length === 0) {
+                    <tr>
+                        <td colspan="8" style="text-align:center;">No hay citas</td>
+                    </tr>
+                    }
+
+                    @for (cita of filteredCitas(); track cita.id; let i = $index) {
+                    <tr>
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ cita.date }}</td>
+                        <td>{{ cita.time }}</td>
+                        <td>{{ cita.firstName }} {{ cita.lastName }}</td>
+                        <td>{{ cita.phone }}</td>
+                        <td>{{ cita.email }}</td>
+                        <td>{{ cita.status }}</td>
+                        <td class="table-actions">
+                            <button type="button" class="btn-action btn-edit" (click)="startEdit(cita)">
+                                Editar
+                            </button>
+                            <button type="button" class="btn-action btn-delete" (click)="citasService.remove(cita.id)">Eliminar</button>
+                        </td>
+                    </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+</main>
+
+<!-- Edit modal (hidden by default). JS toggles [hidden] to show it -->
+@if (isEditModalOpen()) {
+<div class="modal">
+    <div class="modal__overlay" (click)="closeEditModal()"></div>
+
+    <div class="modal__content" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+        <div class="modal__header">
+            <h2 id="editTitle">Editar cita</h2>
+            <button type="button" class="modal__close" (click)="closeEditModal()">✕</button>
+        </div>
+
+        <!-- Separate form for editing an existing appointment -->
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="modal__form">
+            <input type="hidden" id="editId" />
+
+            <label>Fecha
+                <input type="date" formControlName="date">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Hora
+                <input type="time" formControlName="time">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Nombre
+                <input type="text" formControlName="firstName">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Apellidos
+                <input type="text" formControlName="lastName">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>DNI/NIE
+                <input type="text" formControlName="dni" maxlength="9"
+                    pattern="^([0-9]{8}[A-Za-z]|[XYZxyz][0-9]{7}[A-Za-z])$">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Teléfono
+                <input type="tel" formControlName="phone" pattern="^[0-9+ ]{9,15}$">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Email
+                <input type="email" formControlName="email">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Fecha nacimiento
+                <input type="date" formControlName="birthDate">
+                <small class="error-msg" aria-live="polite"></small></label>
+            <label>Observaciones <textarea id="editNotes" rows="2"></textarea></label>
+
+            <div class="modal__actions">
+                <button type="button" (click)="closeEditModal()">Cancelar</button>
+                <button type="submit">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+}

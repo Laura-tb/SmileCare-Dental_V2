@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  min-height: 100vh;
+
+  background: 
+    linear-gradient(
+      rgba(255, 255, 255, 0.85),
+      rgba(255, 255, 255, 0.85)
+    ),
+    url('/assets/fondo_clinica.png');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,30 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header__burger {
+  display: none;
+}
+
+.header__nav {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .header__burger {
+    display: inline-flex;
+  }
+
+  .header__nav {
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header__nav.is-open {
+    display: flex;
+  }
+}
