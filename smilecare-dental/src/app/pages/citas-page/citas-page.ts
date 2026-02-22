@@ -5,11 +5,12 @@ import { CitasService } from '../../core/services/citas.service';
 import { computed } from '@angular/core';
 
 import { Cita } from '../../core/models/cita.model';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-citas-page',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './citas-page.html',
   styleUrl: './citas-page.scss'
 })
@@ -19,29 +20,162 @@ export class CitasPage {
   readonly citasService = inject(CitasService);
 
   citaForm = this.fb.nonNullable.group({
-    date: ['', Validators.required],
-    time: ['', Validators.required],
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    dni: ['', Validators.required],
-    phone: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    birthDate: ['', Validators.required],
-    notes: ['']
+    date: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    time: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    firstName: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+      ]
+    ],
+
+    lastName: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(80),
+        Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+      ]
+    ],
+
+    dni: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]{8}[A-Za-z]$/)
+      ]
+    ],
+
+    phone: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]{9}$/)
+      ]
+    ],
+
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        Validators.maxLength(100)
+      ]
+    ],
+
+    birthDate: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    notes: [
+      '',
+      [
+        Validators.maxLength(300)
+      ]
+    ]
   });
 
   editForm = this.fb.nonNullable.group({
     id: [''],
-    date: ['', Validators.required],
-    time: ['', Validators.required],
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    dni: ['', Validators.required],
-    phone: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    birthDate: ['', Validators.required],
-    notes: [''],
-    status: ['pending' as const]
+
+    date: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    time: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    firstName: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+      ]
+    ],
+
+    lastName: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(80),
+        Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+      ]
+    ],
+
+    dni: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]{8}[A-Za-z]$/)
+      ]
+    ],
+
+    phone: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]{9}$/)
+      ]
+    ],
+
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        Validators.maxLength(100)
+      ]
+    ],
+
+    birthDate: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+
+    notes: [
+      '',
+      [
+        Validators.maxLength(300)
+      ]
+    ],
+
+    status: [
+      'pending' as const,
+      [
+        Validators.required
+      ]
+    ]
   });
 
   editingCita = signal<any | null>(null);
@@ -82,6 +216,26 @@ export class CitasPage {
     this.citaForm.reset();
   }
 
+  getErrorMessage(
+    controlName: keyof typeof this.citaForm.controls,
+    form: 'create' | 'edit' = 'create'
+  ): string | null {
+
+    const formGroup = form === 'create' ? this.citaForm : this.editForm;
+    const control = formGroup.controls[controlName];
+
+    if (!control.touched || !control.errors) return null;
+
+    const errors = control.errors;
+
+    if (errors['required']) return 'Este campo es obligatorio.';
+    if (errors['email']) return 'Email no válido.';
+    if (errors['minlength']) return `Debe tener al menos ${errors['minlength'].requiredLength} caracteres.`;
+    if (errors['maxlength']) return `Máximo ${errors['maxlength'].requiredLength} caracteres.`;
+    if (errors['pattern']) return 'Formato incorrecto.';
+
+    return 'Campo inválido.';
+  }
 
   filterMode = signal<'today' | 'all'>('today');
 
