@@ -57,7 +57,6 @@
 }
 
 .header-top {
-    height: 93px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -102,11 +101,6 @@
     height: 20px;
 }
 
-.header-nav {
-    display: flex;
-    justify-content: center;
-    position: relative;
-}
 
 /* Menú oculto por defecto en mobile */
 .burger-menu,
@@ -122,8 +116,7 @@
     right: 0;
     z-index: 999;
     background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 12px 0;
+   
 }
 
 .main-nav.is-open {
@@ -220,7 +213,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-bottom: 0;
+  
     }
     .header-icons {
         display: flex;
@@ -366,15 +359,17 @@ textarea:focus {
     box-shadow: 0 0 0 4px rgba(55, 19, 236, .12);
 }
 
+
+
 .error {
-    border: 2px solid var(--danger);
+  border: 2px solid var(--danger);
 }
 
 .error-msg {
-    display: block;
-    font-size: .85rem;
-    margin-top: .25rem;
-    color: var(--danger);
+  font-size: 0.85rem;
+  color: var(--danger);
+  margin-top: 4px;
+  display: block;
 }
 
 

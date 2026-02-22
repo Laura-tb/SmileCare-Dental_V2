@@ -11,63 +11,107 @@
             <span class="subheader-create">Introduce los datos del paciente a continuación:</span>
         </div>
 
-        <div class="body-create">
+        <div class="body-create" id="crear-cita">
             <!-- Main form used to create an appointment -->
+            @if (citaForm.invalid && citaForm.touched) {
+            <div class="form-error-alert">
+                ⚠️ Revisa los campos marcados en rojo.
+            </div>
+            }
             <form [formGroup]="citaForm" (ngSubmit)="onSubmit()">
 
                 <label>
                     <span>Fecha</span>
-                    <input type="date" formControlName="date" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="date" formControlName="date"
+                        [class.error]="citaForm.controls.date.invalid && citaForm.controls.date.touched" />
+
+                    @if (getErrorMessage('date')) {
+                    <small class="error-msg">{{ getErrorMessage('date') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Hora</span>
-                    <input type="time" formControlName="time" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="time" formControlName="time"
+                        [class.error]="citaForm.controls.time.invalid && citaForm.controls.time.touched" />
+
+                    @if (getErrorMessage('time')) {
+                    <small class="error-msg">{{ getErrorMessage('time') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Nombre</span>
-                    <input type="text" formControlName="firstName" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="text" formControlName="firstName"
+                        [class.error]="citaForm.controls.firstName.invalid && citaForm.controls.firstName.touched" />
+
+                    @if (getErrorMessage('firstName')) {
+                    <small class="error-msg" aria-live="polite">
+                        {{ getErrorMessage('firstName') }}
+                    </small>
+                    }
                 </label>
 
                 <label>
                     <span>Apellidos</span>
-                    <input type="text" formControlName="lastName" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="text" formControlName="lastName"
+                        [class.error]="citaForm.controls.lastName.invalid && citaForm.controls.lastName.touched" />
+
+                    @if (getErrorMessage('lastName')) {
+                    <small class="error-msg">{{ getErrorMessage('lastName') }}</small>
+                    }
 
                 </label>
 
                 <label>
                     <span>DNI o NIE</span>
-                    <input type="text" formControlName="dni" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="text" formControlName="dni"
+                        [class.error]="citaForm.controls.dni.invalid && citaForm.controls.dni.touched" />
+
+                    @if (getErrorMessage('dni')) {
+                    <small class="error-msg">{{ getErrorMessage('dni') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Teléfono</span>
-                    <input type="tel" formControlName="phone" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="tel" formControlName="phone"
+                        [class.error]="citaForm.controls.phone.invalid && citaForm.controls.phone.touched" />
+
+                    @if (getErrorMessage('phone')) {
+                    <small class="error-msg">{{ getErrorMessage('phone') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Email</span>
-                    <input type="email" formControlName="email" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="email" formControlName="email"
+                        [class.error]="citaForm.controls.email.invalid && citaForm.controls.email.touched" />
+
+                    @if (getErrorMessage('email')) {
+                    <small class="error-msg">{{ getErrorMessage('email') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Fecha de Nacimiento</span>
-                    <input type="date" formControlName="birthDate" />
-                    <small class="error-msg" aria-live="polite"></small>
+                    <input type="date" formControlName="birthDate"
+                        [class.error]="citaForm.controls.birthDate.invalid && citaForm.controls.birthDate.touched" />
+
+                    @if (getErrorMessage('birthDate')) {
+                    <small class="error-msg">{{ getErrorMessage('birthDate') }}</small>
+                    }
                 </label>
 
                 <label>
                     <span>Observaciones</span>
-                    <textarea id="notes" name="notes" rows="2" placeholder="Indica alguna observación..."
-                        formControlName="notes"></textarea>
+                    <textarea formControlName="notes"
+                        [class.error]="citaForm.controls.notes.invalid && citaForm.controls.notes.touched">
+                    </textarea>
+
+                    @if (getErrorMessage('notes')) {
+                    <small class="error-msg">{{ getErrorMessage('notes') }}</small>
+                    }
                 </label>
 
                 <!-- Hidden field used to keep track of the appointment being edited -->
@@ -146,7 +190,7 @@
                     @for (cita of filteredCitas(); track cita.id; let i = $index) {
                     <tr>
                         <td>{{ i + 1 }}</td>
-                        <td>{{ cita.date }}</td>
+                        <td>{{ cita.date | date:'dd/MM/yyyy' }}</td>
                         <td>{{ cita.time }}</td>
                         <td>{{ cita.firstName }} {{ cita.lastName }}</td>
                         <td>{{ cita.phone }}</td>
@@ -156,7 +200,8 @@
                             <button type="button" class="btn-action btn-edit" (click)="startEdit(cita)">
                                 Editar
                             </button>
-                            <button type="button" class="btn-action btn-delete" (click)="citasService.remove(cita.id)">Eliminar</button>
+                            <button type="button" class="btn-action btn-delete"
+                                (click)="citasService.remove(cita.id)">Eliminar</button>
                         </td>
                     </tr>
                     }
@@ -179,36 +224,91 @@
             <button type="button" class="modal__close" (click)="closeEditModal()">✕</button>
         </div>
 
+        @if (getErrorMessage('firstName', 'edit')) {
+        <small class="error-msg">
+            {{ getErrorMessage('firstName', 'edit') }}
+        </small>
+        }
         <!-- Separate form for editing an existing appointment -->
         <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="modal__form">
             <input type="hidden" id="editId" />
 
             <label>Fecha
-                <input type="date" formControlName="date">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="date" formControlName="date"
+                    [class.error]="editForm.controls.date.invalid && editForm.controls.date.touched">
+                @if (getErrorMessage('date', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('date', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Hora
-                <input type="time" formControlName="time">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="time" formControlName="time"
+                    [class.error]="editForm.controls.time.invalid && editForm.controls.time.touched">
+                @if (getErrorMessage('time', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('time', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Nombre
-                <input type="text" formControlName="firstName">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="text" formControlName="firstName"
+                    [class.error]="editForm.controls.firstName.invalid && editForm.controls.firstName.touched">
+                @if (getErrorMessage('firstName', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('firstName', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Apellidos
-                <input type="text" formControlName="lastName">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="text" formControlName="lastName"
+                    [class.error]="editForm.controls.lastName.invalid && editForm.controls.lastName.touched">
+                @if (getErrorMessage('lastName', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('lastName', 'edit') }}
+                </small>
+                }
+            </label>
             <label>DNI/NIE
                 <input type="text" formControlName="dni" maxlength="9"
-                    pattern="^([0-9]{8}[A-Za-z]|[XYZxyz][0-9]{7}[A-Za-z])$">
-                <small class="error-msg" aria-live="polite"></small></label>
+                    pattern="^([0-9]{8}[A-Za-z]|[XYZxyz][0-9]{7}[A-Za-z])$"
+                    [class.error]="editForm.controls.dni.invalid && editForm.controls.dni.touched">
+                @if (getErrorMessage('dni', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('dni', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Teléfono
-                <input type="tel" formControlName="phone" pattern="^[0-9+ ]{9,15}$">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="tel" formControlName="phone" pattern="^[0-9+ ]{9,15}$"
+                    [class.error]="editForm.controls.phone.invalid && editForm.controls.phone.touched">
+                @if (getErrorMessage('phone', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('phone', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Email
-                <input type="email" formControlName="email">
-                <small class="error-msg" aria-live="polite"></small></label>
+                <input type="email" formControlName="email"
+                    [class.error]="editForm.controls.email.invalid && editForm.controls.email.touched">
+                @if (getErrorMessage('email', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('email', 'edit') }}
+                </small>
+                }
+            </label>
             <label>Fecha nacimiento
-                <input type="date" formControlName="birthDate">
-                <small class="error-msg" aria-live="polite"></small></label>
-            <label>Observaciones <textarea id="editNotes" rows="2"></textarea></label>
+                <input type="date" formControlName="birthDate"
+                    [class.error]="editForm.controls.birthDate.invalid && editForm.controls.birthDate.touched">
+                @if (getErrorMessage('birthDate', 'edit')) {
+                <small class="error-msg">
+                    {{ getErrorMessage('birthDate', 'edit') }}
+                </small>
+                }
+            </label>
+            <label>Observaciones <textarea id="editNotes" rows="2"
+                    [class.error]="editForm.controls.notes.invalid && editForm.controls.notes.touched"></textarea>
+                </label>
 
             <div class="modal__actions">
                 <button type="button" (click)="closeEditModal()">Cancelar</button>
