@@ -29,11 +29,11 @@
         </div>
 
         <!-- Main navigation wrapper -->
-        <nav class="header-nav" aria-label="Main" [class.is-open]="isOpen()">
+        <nav class="header-nav" aria-label="Main" >
             <div class="container nav-inner">
 
                 <!-- Main navigation list -->
-                <nav class="main-nav" id="site-nav" aria-label="Main">
+                <nav class="main-nav" id="site-nav" aria-label="Main" [class.is-open]="isOpen()">
                     <ul class="nav-links">
                         <li><a class="nav-link" (click)="closeMenu()">Pacientes</a></li>
                         <li><a href="citas#crear-cita" class="nav-link" (click)="closeMenu()">Nueva cita</a></li>

@@ -106,11 +106,12 @@
 .burger-menu,
 .header-nav {
     display: block;
+    position:relative;
 }
 
 .main-nav {
     display: none;
-    position: absolute;
+  
     top: 100%;
     left: 0;
     right: 0;
@@ -893,9 +894,9 @@ tbody tr:hover {
         right: auto;
         transform: translate(-50%, -50%);
 
-        width: min(720px, calc(100% - 48px));
+        width: auto;
         border-radius: 16px;
-        max-height: 80vh;
+        max-height: auto;
     }
 
     /* 2 columnas para campos (más cómodo) */
@@ -920,3 +921,4 @@ tbody tr:hover {
         min-width: 160px;
     }
 }
+

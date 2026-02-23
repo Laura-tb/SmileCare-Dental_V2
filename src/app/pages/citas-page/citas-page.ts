@@ -1,24 +1,67 @@
+// Importaciones principales de Angular
 import { Component, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-
-import { CitasService } from '../../core/services/citas.service';
 import { computed } from '@angular/core';
 
+// Servicio que gestiona las citas (añadir, actualizar, eliminar)
+import { CitasService } from '../../core/services/citas.service';
+
+// Modelo de datos de una cita
 import { Cita } from '../../core/models/cita.model';
+
+// Pipe para formatear fechas
 import { DatePipe } from '@angular/common';
+
+// Tipos para validadores personalizados
+import { AbstractControl, ValidationErrors } from '@angular/forms';
+
+// Pipe personalizada para mostrar el estado de la cita
+import { StatusLabelPipe } from '../../shared/pipes/status-label.pipe';
+
+// Componentes reutilizables
+import { CitaFormComponent } from '../../shared/components/cita-form/cita-form.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+
+/**
+ * Validador personalizado a nivel de formulario.
+ * Comprueba que la fecha y hora seleccionadas no sean anteriores al momento actual.
+ */
+function dateTimeValidator(group: AbstractControl): ValidationErrors | null {
+
+  const date = group.get('date')?.value;
+  const time = group.get('time')?.value;
+
+  if (!date || !time) return null; // Si no hay fecha u hora aún, no valida
+
+  const selectedDateTime = new Date(`${date}T${time}`);
+  const now = new Date();
+
+  // Si es futura o actual → válido
+  // Si es pasada → error
+  return selectedDateTime >= now ? null : { pastDateTime: true };
+}
+
 
 @Component({
   selector: 'app-citas-page',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, StatusLabelPipe, CitaFormComponent, ConfirmDialogComponent],
   templateUrl: './citas-page.html',
   styleUrl: './citas-page.scss'
 })
+
+/*NO DEBE HABER NADA ENTRE @COMPONENT Y LA CLASE CITASPAGE*/
+
 export class CitasPage {
 
+  // Inyección de dependencias moderna con inject()
   private fb = inject(FormBuilder);
   readonly citasService = inject(CitasService);
 
+  /**
+   * FORMULARIO DE CREACIÓN DE CITA
+   * Utiliza Reactive Forms con validaciones.
+   */
   citaForm = this.fb.nonNullable.group({
     date: [
       '',
@@ -92,8 +135,14 @@ export class CitasPage {
         Validators.maxLength(300)
       ]
     ]
-  });
+  },
+    { validators: dateTimeValidator }
+  );
 
+  /**
+   * FORMULARIO DE EDICIÓN
+   * Similar al anterior pero incluye id y status.
+   */
   editForm = this.fb.nonNullable.group({
     id: [''],
 
@@ -176,10 +225,27 @@ export class CitasPage {
         Validators.required
       ]
     ]
-  });
+  },
+    { validators: dateTimeValidator }
+  );
 
+  /**
+   * SIGNALS (Angular moderno)
+   */
+  // Guarda la cita en edición
   editingCita = signal<any | null>(null);
+  // Controla si el modal de edición está abierto
+  isEditModalOpen = signal(false);
+  // Guarda el id de la cita a eliminar
+  deleteId = signal<string | null>(null);
+  // Controla el filtro (Hoy / Todas)
+  filterMode = signal<'today' | 'all'>('today');
+  // Texto de búsqueda
+  searchTerm = signal('');
 
+  /**
+ * MÉTODOS DE EDICIÓN
+ */
   startEdit(cita: any) {
     this.editForm.patchValue(cita);
     this.editingCita.set(cita);
@@ -197,16 +263,18 @@ export class CitasPage {
     this.editingCita.set(null);
   }
 
-  isEditModalOpen = signal(false);
+  closeEditModal() {
+    this.isEditModalOpen.set(false);
+    this.editingCita.set(null);
+  }
 
   openEditModal() {
     this.isEditModalOpen.set(true);
   }
 
-  closeEditModal() {
-    this.isEditModalOpen.set(false);
-    this.editingCita.set(null);
-  }
+  /**
+     * CREAR NUEVA CITA
+     */
 
   onSubmit() {
     if (this.citaForm.invalid) return;
@@ -216,31 +284,28 @@ export class CitasPage {
     this.citaForm.reset();
   }
 
-  getErrorMessage(
-    controlName: keyof typeof this.citaForm.controls,
-    form: 'create' | 'edit' = 'create'
-  ): string | null {
+ /**
+   * ELIMINACIÓN DE CITA
+   */
 
-    const formGroup = form === 'create' ? this.citaForm : this.editForm;
-    const control = formGroup.controls[controlName];
-
-    if (!control.touched || !control.errors) return null;
-
-    const errors = control.errors;
-
-    if (errors['required']) return 'Este campo es obligatorio.';
-    if (errors['email']) return 'Email no válido.';
-    if (errors['minlength']) return `Debe tener al menos ${errors['minlength'].requiredLength} caracteres.`;
-    if (errors['maxlength']) return `Máximo ${errors['maxlength'].requiredLength} caracteres.`;
-    if (errors['pattern']) return 'Formato incorrecto.';
-
-    return 'Campo inválido.';
+  openDeleteDialog(id: string) {
+    this.deleteId.set(id);
   }
 
-  filterMode = signal<'today' | 'all'>('today');
+  confirmDelete() {
+    if (this.deleteId()) {
+      this.citasService.remove(this.deleteId()!);
+    }
+    this.deleteId.set(null);
+  }
 
-  searchTerm = signal('');
+  closeDeleteDialog() {
+    this.deleteId.set(null);
+  }
 
+  /**
+   * FILTRADO DE CITAS (computed)
+   */
   filteredCitas = computed(() => {
     const all = this.citasService.citas();
     const mode = this.filterMode();
@@ -248,13 +313,13 @@ export class CitasPage {
 
     let result = all;
 
-    // Filtro Hoy / Todas
+    // Filtro por fecha (Hoy)
     if (mode === 'today') {
       const today = new Date().toISOString().split('T')[0];
       result = result.filter(cita => cita.date === today);
     }
 
-    // Filtro búsqueda
+    // Filtro por búsqueda
     if (term) {
       result = result.filter(cita =>
         `${cita.firstName} ${cita.lastName}`.toLowerCase().includes(term) ||
@@ -267,6 +332,9 @@ export class CitasPage {
     return result;
   });
 
+  /**
+   * Devuelve la fecha de hoy formateada
+   */
   todayLabel = computed(() => {
     const today = new Date();
 
@@ -277,6 +345,9 @@ export class CitasPage {
     });
   });
 
+   /**
+   * Devuelve el título dinámico de la tabla
+   */
   tableTitle = computed(() => {
     return this.filterMode() === 'today'
       ? 'Citas de Hoy'

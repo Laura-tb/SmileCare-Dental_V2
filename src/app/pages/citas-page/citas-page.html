@@ -1,0 +1,179 @@
+<!-- Contenido principal de la página -->
+<main class="container">
+
+    <!-- Sección para crear una nueva cita -->
+    <section id="crear-cita">
+        <div class="header-create">
+            <div>
+                <span class="material-symbols-outlined">add_circle</span>
+                <h2>Nueva cita</h2>
+            </div>
+            <span class="subheader-create">Introduce los datos del paciente a continuación:</span>
+        </div>
+
+        <!-- Cuerpo de la sección de creación -->
+        <div class="body-create" id="crear-cita">
+            <!-- 
+                Componente reutilizable del formulario de cita.
+                - Se le pasa el formGroup (Reactive Forms).
+                - Se define el texto del botón.
+                - Se escucha el evento personalizado formSubmit.
+            -->
+            <app-cita-form [formGroup]="citaForm" submitLabel="Guardar cita" (formSubmit)="onSubmit()">
+            </app-cita-form>
+        </div>
+    </section>
+
+     <!-- Sección donde se muestran las citas en tabla -->
+    <section id="mostrar-citas" class="table">
+
+        <div class="header-show">
+            <!-- Parte superior del header -->
+            <div class="header-show-top">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <!-- Título dinámico según el filtro -->
+                <h2>{{ tableTitle() }}</h2>
+
+                <!-- 
+                    Renderizado condicional:
+                    Si el filtro es "today", mostramos la fecha actual.
+                -->
+                @if (filterMode() === 'today') {
+                <span class="date">
+                    {{ todayLabel() }}
+                </span>
+                }
+            </div>
+
+            <!-- Parte inferior del header -->
+            <div class="header-show-bottom">
+                <!-- Buscador -->
+                <div class="header-show-search">
+                    <span class="material-symbols-outlined">search</span>
+                    <!-- 
+                        Al escribir en el input, actualizamos el signal searchTerm.
+                        $any() evita errores de tipado en el evento.
+                    -->
+                    <input type="text" placeholder="Buscar..." (input)="searchTerm.set(($any($event.target)).value)" />
+                </div>
+
+                <!-- Botones de filtrado -->
+                <div class="header-show-actions">
+                    <!-- Botón para mostrar todas las citas -->
+                    <button type="button" [class.is-active]="filterMode() === 'all'" (click)="filterMode.set('all')">
+                        Todas
+                    </button>
+
+                    <!-- Botón para mostrar solo las citas de hoy -->
+                    <button type="button" [class.is-active]="filterMode() === 'today'"
+                        (click)="filterMode.set('today')">
+                        Hoy
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor de la tabla -->
+        <div class="body-show">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Paciente</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <!-- 
+                        Si no hay citas filtradas,
+                        mostramos un mensaje informativo.
+                    -->
+                    @if (filteredCitas().length === 0) {
+                    <tr>
+                        <td colspan="8" style="text-align:center;">No hay citas</td>
+                    </tr>
+                    }
+
+                    <!-- 
+                        Iteramos sobre las citas filtradas.
+                        track cita.id mejora el rendimiento.
+                        i representa el índice actual.
+                    -->
+                    @for (cita of filteredCitas(); track cita.id; let i = $index) {
+                    <tr>
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ cita.date | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ cita.time }}</td>
+                        <td>{{ cita.firstName }} {{ cita.lastName }}</td>
+                        <td>{{ cita.phone }}</td>
+                        <td>{{ cita.email }}</td>
+                        <!-- Estado usando pipe personalizada -->
+                        <td>{{ cita.status | statusLabel }}</td>
+
+                        <!-- Botones de acción -->
+                        <td class="table-actions">
+                            <!-- Editar cita -->
+                            <button type="button" class="btn-action btn-edit" (click)="startEdit(cita)">
+                                Editar
+                            </button>
+
+                            <!-- Eliminar cita -->
+                            <button type="button" class="btn-action btn-delete" (click)="openDeleteDialog(cita.id)">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+</main>
+
+<!-- 
+    Diálogo de confirmación para eliminar.
+    Solo se renderiza si existe deleteId().
+-->
+@if (deleteId()) {
+<app-confirm-dialog 
+    title="Eliminar cita" 
+    message="¿Seguro que quieres eliminar esta cita?"
+    (confirmed)="confirmDelete()" 
+    (closed)="closeDeleteDialog()">
+</app-confirm-dialog>
+}
+
+<!-- 
+    Modal de edición.
+    Se muestra solo si isEditModalOpen() es true.
+-->
+@if (isEditModalOpen()) {
+<div class="modal">
+    <div class="modal__overlay" (click)="closeEditModal()"></div>
+
+    <!-- Contenido del modal -->
+    <div class="modal__content" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+        <div class="modal__header">
+            <h2 id="editTitle">Editar cita</h2>
+            <button type="button" class="modal__close" (click)="closeEditModal()">✕</button>
+        </div>
+
+        <!-- 
+            Formulario reutilizado para editar.
+            Usa editForm en lugar de citaForm.
+        -->
+        <app-cita-form [formGroup]="editForm" submitLabel="Guardar cambios" (formSubmit)="saveEdit()">
+        </app-cita-form>
+    </div>
+</div>
+
+}
